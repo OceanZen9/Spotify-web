@@ -1,4 +1,4 @@
-const clientId = process.env.clientId; // Replace with client ID
+const clientId = process.env.VUE_APP_CLIENT_ID; // Replace with client ID
 const redirectUri = "http://127.0.0.1:8080/callback"; // Replace with redirect URI
 
 /*
