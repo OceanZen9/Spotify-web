@@ -1,6 +1,5 @@
-const clientId = process.env.clientId; // Replace with your client ID
-const params = new URLSearchParams(window.location.search);
-const code = params.get("code");
+const clientId = process.env.clientId; // Replace with client ID
+const redirectUri = "http://127.0.0.1:8080/callback"; // Replace with redirect URI
 
 /*
 In this function, a new URLSearchParams object is created, and we add the client_id, response_type, redirect_uri and scope parameters to it. 
@@ -18,7 +17,7 @@ export async function redirectToAuthCodeFlow(clientId) {
   const params = new URLSearchParams();
   params.append("client_id", clientId);
   params.append("response_type", "code");
-  params.append("redirect_uri", "http://127.0.0.1:8080/callback");
+  params.append("redirect_uri", redirectUri);
   params.append("scope", "user-read-private user-read-email");
   params.append("code_challenge_method", "S256");
   params.append("code_challenge", challenge);
@@ -48,8 +47,7 @@ async function generateCodeChallenge(codeVerifier) {
 
 /**
  *
- * @param {string} clientId
- * @param {string} code
+ * @param {string} code Authorization code obtained from the URL
  * @returns {Promise<string>} access token
  */
 export async function getAccessToken(clientId, code) {
@@ -59,7 +57,7 @@ export async function getAccessToken(clientId, code) {
   params.append("client_id", clientId);
   params.append("grant_type", "authorization_code");
   params.append("code", code);
-  params.append("redirect_uri", "http://127.0.0.1:5173/callback");
+  params.append("redirect_uri", redirectUri);
   params.append("code_verifier", verifier);
 
   const result = await fetch("https://accounts.spotify.com/api/token", {
@@ -71,11 +69,19 @@ export async function getAccessToken(clientId, code) {
   const { access_token } = await result.json();
   return access_token;
 }
-
+/**
+ *
+ * @param {string} token
+ * @returns {Promise<Object>} profile information
+ */
 async function fetchProfile(token) {
-  // TODO: Call Web API
-}
+  const result = await fetch("https://api.spotify.com/v1/me", {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!result.ok) {
+    throw new Error("Failed to fetch user profile");
+  }
 
-function populateUI(profile) {
-  // TODO: Update UI with profile data
+  return await result.json();
 }

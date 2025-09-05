@@ -1,31 +1,56 @@
 <template>
   <div id="app">
-    <h1>my spotify-web-player</h1>
+    <div v-if="profile">
+      <h1>欢迎, {{ profile.display_name }}</h1>
+      <img
+        v-if="profile.images[0]"
+        :src="profile.images[0].url"
+        width="200"
+        alt="Avatar"
+      />
+      <p>ID: {{ profile.id }}</p>
+      <p>Email: {{ profile.email }}</p>
+      <p>
+        URI: <a :href="profile.external_urls.spotify">{{ profile.uri }}</a>
+      </p>
+    </div>
+    <div v-else>
+      <h1>请登录您的Spotify账号</h1>
+      <button @click="handleLogin">使用Spotify登录</button>
+    </div>
   </div>
 </template>
+
 <script>
 import {
   redirectToAuthCodeFlow,
   getAccessToken,
   fetchProfile,
-  populateUI,
 } from "./services/spotify";
 export default {
   data() {
-    return {};
+    return {
+      profile: null,
+    };
   },
   async mounted() {
-    const clientId = process.env.clientId; // Replace with client ID
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
 
-    if (!code) {
-      redirectToAuthCodeFlow(clientId);
-    } else {
-      const accessToken = await getAccessToken(clientId, code);
-      const profile = await fetchProfile(accessToken);
-      populateUI(profile);
+    if (code) {
+      try {
+        const accessToken = await getAccessToken(code);
+        this.profile = await fetchProfile(accessToken);
+        window.history.pushState({}, document.title, "/");
+      } catch (error) {
+        console.error("Error during authentication:", error);
+      }
     }
+  },
+  methods: {
+    handleLogin() {
+      redirectToAuthCodeFlow();
+    },
   },
 };
 </script>
