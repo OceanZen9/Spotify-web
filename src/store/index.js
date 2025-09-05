@@ -1,39 +1,62 @@
 import { createStore } from "vuex";
-import { getArtistInfo } from "../services/spotify";
+import {
+  getAccessToken,
+  redirectToAuthCodeFlow,
+  fetchProfile,
+} from "../services/spotify";
 export default createStore({
   state: {
-    artist: null,
+    accessToken: localStorage.getItem("accessToken") || null,
+    userProfile: null,
     isLoading: false,
     error: null,
   },
 
+  getters: {
+    isLoggedIn: (state) => !!state.accessToken,
+  },
   mutations: {
     SET_LOADING(state, isLoading) {
       state.isLoading = isLoading;
     },
-    SET_ARTIST(state, artist) {
-      state.artist = artist;
+    SET_ACCESS_TOKEN(state, token) {
+      state.accessToken = token;
+      localStorage.setItem("spotify_token", token);
+    },
+    SET_USER_PROFILE(state, profile) {
+      state.userProfile = profile;
       state.error = null;
     },
     SET_ERROR(state, error) {
       state.error = error;
     },
+    LOGOUT(state) {
+      state.accessToken = null;
+      state.userProfile = null;
+      localStorage.removeItem("spotify_token");
+    },
   },
 
   actions: {
-    async fetchArtist(context, artistId) {
-      context.commit("SET_LOADING", true);
+    login() {
+      redirectToAuthCodeFlow();
+    },
+    async handleAuthCallback({ commit }, code) {
+      commit("SET_LOADING", true);
+      commit("SET_ERROR", null);
       try {
-        const artist = await getArtistInfo(artistId);
-        context.commit("SET_ARTIST", artist);
+        const token = await getAccessToken(code);
+        commit("SET_ACCESS_TOKEN", token);
+        const profile = await fetchProfile(token);
+        commit("SET_USER_PROFILE", profile);
       } catch (error) {
-        context.commit(
-          "SET_ERROR",
-          error.message || "Failed to fetch artist info"
-        );
+        commit("SET_ERROR", error.message);
       } finally {
-        context.commit("SET_LOADING", false);
+        commit("SET_LOADING", false);
       }
+    },
+    logout({ commit }) {
+      commit("LOGOUT");
     },
   },
   modules: {},

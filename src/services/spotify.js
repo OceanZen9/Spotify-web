@@ -8,7 +8,7 @@ and user-read-email scopes - these are the scopes that allow us to fetch the use
 The redirect_uri parameter is the URL that Spotify will redirect the user back to after they've authorized the application. 
 In this case, we're using a URL that points to our local Vite dev server.
 */
-export async function redirectToAuthCodeFlow(clientId) {
+export async function redirectToAuthCodeFlow() {
   const verifier = generateCodeVerifier(128);
   const challenge = await generateCodeChallenge(verifier);
 
@@ -50,7 +50,7 @@ async function generateCodeChallenge(codeVerifier) {
  * @param {string} code Authorization code obtained from the URL
  * @returns {Promise<string>} access token
  */
-export async function getAccessToken(clientId, code) {
+export async function getAccessToken(code) {
   const verifier = localStorage.getItem("verifier");
 
   const params = new URLSearchParams();
@@ -74,7 +74,7 @@ export async function getAccessToken(clientId, code) {
  * @param {string} token
  * @returns {Promise<Object>} profile information
  */
-async function fetchProfile(token) {
+export async function fetchProfile(token) {
   const result = await fetch("https://api.spotify.com/v1/me", {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
