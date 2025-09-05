@@ -1,5 +1,5 @@
 const clientId = process.env.VUE_APP_CLIENT_ID; // Replace with client ID
-const redirectUri = "http://127.0.0.1:8080/callback"; // Replace with redirect URI
+const redirectUri = "http://localhost:8080/callback"; // Replace with redirect URI
 
 /*
 In this function, a new URLSearchParams object is created, and we add the client_id, response_type, redirect_uri and scope parameters to it. 

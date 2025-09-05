@@ -1,12 +1,13 @@
 import { createStore } from "vuex";
 import {
-  getAccessToken,
   redirectToAuthCodeFlow,
+  getAccessToken,
   fetchProfile,
-} from "../services/spotify";
+} from "../services/spotify.js";
+
 export default createStore({
   state: {
-    accessToken: localStorage.getItem("accessToken") || null,
+    accessToken: localStorage.getItem("spotify_token") || null,
     userProfile: null,
     isLoading: false,
     error: null,
@@ -15,6 +16,7 @@ export default createStore({
   getters: {
     isLoggedIn: (state) => !!state.accessToken,
   },
+
   mutations: {
     SET_LOADING(state, isLoading) {
       state.isLoading = isLoading;
@@ -50,7 +52,8 @@ export default createStore({
         const profile = await fetchProfile(token);
         commit("SET_USER_PROFILE", profile);
       } catch (error) {
-        commit("SET_ERROR", error.message);
+        commit("SET_ERROR", error.message || "认证失败，请刷新页面重试");
+        commit("LOGOUT");
       } finally {
         commit("SET_LOADING", false);
       }

@@ -3,34 +3,35 @@
     <div v-if="isLoggedIn && userProfile" class="profile-container">
       <h1>欢迎, {{ userProfile.display_name }}</h1>
       <img
-        v-if="profile.images && userProfile.images.length > 0"
-        :src="profile.images[0].url"
+        v-if="userProfile.images && userProfile.images.length > 0"
+        :src="userProfile.images[0].url"
         class="avatar"
         alt="User Avatar"
       />
       <ul>
-        <li><strong>用户名:</strong> {{ userProfile.id }}</li>
+        <li>用户 ID: {{ userProfile.id }}</li>
+        <li>邮箱: {{ userProfile.email }}</li>
         <li>
-          <strong>邮箱:{{ userProfile.email }}</strong>
-        </li>
-        <li>
-          Spotify主页：
-          <a href="userProfile.external_urls.spotify" target="_blank">{{
-            userProfile.url
+          Spotify主页:
+          <a :href="userProfile.external_urls.spotify" target="_blank">{{
+            userProfile.uri
           }}</a>
         </li>
       </ul>
-      <button @click="handleLogout" class="button">退出登陆</button>
+      <button @click="handleLogout" class="button">退出登录</button>
     </div>
-
     <div v-else-if="isLoading" class="loading-container">
-      <h2>正在认证，请稍后</h2>
+      <h2>正在认证中，请稍候...</h2>
     </div>
-
     <div v-else-if="error" class="error-container">
       <h2>出现错误</h2>
       <p>{{ error }}</p>
       <button @click="handleLogin" class="button">重试</button>
+    </div>
+    <div v-else class="login-container">
+      <h1>连接您的Spotify账号</h1>
+      <p>点击下方按钮，授权本应用读取您的个人信息。</p>
+      <button @click="handleLogin" class="button">使用Spotify登录</button>
     </div>
   </div>
 </template>
@@ -40,35 +41,30 @@ import { computed, onMounted } from "vue";
 import { useStore } from "vuex";
 
 const store = useStore();
+
 const isLoading = computed(() => store.state.isLoading);
-const isLoggedIn = computed(() => store.state.isLoggedIn);
 const userProfile = computed(() => store.state.userProfile);
 const error = computed(() => store.state.error);
+const isLoggedIn = computed(() => store.getters.isLoggedIn);
 
-const handleLogin = () => {
-  store.dispatch("login");
-};
-const handleLogout = () => {
-  store.dispatch("logout");
-};
-const handleAuthCallback = (code) => {
-  store.dispatch("handleAuthCallback", code);
-};
+const handleLogin = () => store.dispatch("login");
+const handleLogout = () => store.dispatch("logout");
+const handleAuthCallback = (code) => store.dispatch("handleAuthCallback", code);
 
 onMounted(() => {
-  const parms = new URLSearchParams(window.location.search);
-  const code = parms.get("code");
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+
   if (code) {
     handleAuthCallback(code);
     window.history.pushState({}, document.title, window.location.pathname);
   }
 });
 </script>
-<style lang="scss">
+
+<style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
@@ -101,7 +97,7 @@ li {
   padding: 0.5rem 0;
 }
 .button {
-  background-color: #1db954; /* Spotify Green */
+  background-color: #1db954;
   color: white;
   border: none;
   padding: 1rem 2rem;
