@@ -4,15 +4,28 @@
   </div>
 </template>
 <script>
-import { mapState } from "vuex";
+import {
+  redirectToAuthCodeFlow,
+  getAccessToken,
+  fetchProfile,
+  populateUI,
+} from "./services/spotify";
 export default {
-  name: "App",
-
-  computer: {
-    ...mapState(["isLoading", "error", "artist"]),
+  data() {
+    return {};
   },
-  mounted() {
-    this.$store.dispatch("fetchArtist", "2CYhavOjsRPhVOjejoA6bT");
+  async mounted() {
+    const clientId = process.env.clientId; // Replace with client ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    if (!code) {
+      redirectToAuthCodeFlow(clientId);
+    } else {
+      const accessToken = await getAccessToken(clientId, code);
+      const profile = await fetchProfile(accessToken);
+      populateUI(profile);
+    }
   },
 };
 </script>
