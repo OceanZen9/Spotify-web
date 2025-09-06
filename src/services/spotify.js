@@ -1,14 +1,7 @@
 const clientId = process.env.VUE_APP_CLIENT_ID; // Replace with client ID
-const redirectUri = "http://127.0.0.1:8080/callback"; // Replace with redirect URI
-console.log("即将发送给Spotify的Client ID是:", clientId);
+const redirectUri = "http://127.0.0.1:8080/callback"; // make sure this matches the Redirect URI in your Spotify app settings
 
-/*
-In this function, a new URLSearchParams object is created, and we add the client_id, response_type, redirect_uri and scope parameters to it. 
-The scope parameter is a list of permissions that we're requesting from the user. In this case, we're requesting the user-read-private 
-and user-read-email scopes - these are the scopes that allow us to fetch the user's profile data.
-The redirect_uri parameter is the URL that Spotify will redirect the user back to after they've authorized the application. 
-In this case, we're using a URL that points to our local Vite dev server.
-*/
+//  Start the user authorization process
 export async function redirectToAuthCodeFlow() {
   const verifier = generateCodeVerifier(128);
   const challenge = await generateCodeChallenge(verifier);
